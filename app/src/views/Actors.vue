@@ -80,14 +80,14 @@
             text
             class="text-center text-none"
             color="primary"
-          >Filter custom fields</v-btn>
+          >{{ customFilter.length ? `${customFilter.length} custom filters` : 'Filter custom fields'}}</v-btn>
         </div>
       </v-container>
     </v-navigation-drawer>
 
     <div class="text-center" v-if="fetchError">
       <div>There was an error</div>
-      <v-btn class="mt-2" @click="loadPage(page)">Try again</v-btn>
+      <v-btn text class="mt-2" @click="loadPage(page)">Try again</v-btn>
     </div>
     <div v-else>
       <div class="mb-2 d-flex align-center">

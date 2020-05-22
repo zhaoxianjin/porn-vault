@@ -1,156 +1,171 @@
 <template>
-  <v-row>
-    <v-col cols="12" sm="6" class="mt-4" v-for="field in fields" :key="field._id">
-      <v-subheader class="mb-2" style="height: 20px">{{ field.name }}</v-subheader>
+  <div>
+    <v-row>
+      <v-col v-for="(filter, i) in innerValue" :key="i" cols="12" sm="6">
+        <v-card outlined class="mb-2 subtitle-1">
+          <v-card-title class="d-flex align-center">
+            {{ getField(filter.id).name }}
+            <v-spacer></v-spacer>
+            <v-btn icon @click="splice(i)">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-card-title>
+          <v-card-text>
+            <div v-if="getField(filter.id).type == 'NUMBER'">
+              <v-select
+                clearable
+                solo
+                flat
+                single-line
+                :items="['equals', 'greater than', 'less than']"
+                placeholder="Operation"
+                hide-details
+                class="mb-1"
+                v-model="innerValue[i].op"
+                @change="emitValue"
+              ></v-select>
 
-      <div v-if="field.type == 'NUMBER'">
-        <v-select
-          clearable
-          solo
-          flat
-          single-line
-          :items="['equals', 'greater than', 'less than']"
-          placeholder="Operation"
-          hide-details
-          class="mb-1"
-          v-model="ops[field._id]"
-          @change="emitValue"
-        ></v-select>
+              <v-text-field
+                clearable
+                style="width:100%"
+                solo
+                flat
+                single-line
+                :placeholder="getField(filter.id).name"
+                v-model.number="innerValue[i].value"
+                @input="emitValue"
+                hide-details
+                color="primary"
+                :suffix="getField(filter.id).unit"
+              />
+            </div>
+            <div v-else-if="getField(filter.id).type == 'STRING'">
+              <v-select
+                solo
+                flat
+                single-line
+                clearable
+                :items="['equals', 'contains']"
+                placeholder="Operation"
+                hide-details
+                class="mb-1"
+                v-model="innerValue[i].op"
+                @change="emitValue"
+              ></v-select>
 
-        <v-text-field
-          clearable
-          style="width:100%"
-          solo
-          flat
-          single-line
-          :placeholder="field.name"
-          v-model.number="values[field._id]"
-          @input="emitValue"
-          hide-details
-          color="primary"
-          :suffix="field.unit"
-          :disabled="!ops[field._id]"
-        />
-      </div>
+              <v-text-field
+                clearable
+                style="width:100%"
+                solo
+                flat
+                single-line
+                :placeholder="getField(filter.id).name"
+                v-model="innerValue[i].value"
+                @input="emitValue"
+                hide-details
+                color="primary"
+                :suffix="getField(filter.id).unit"
+              />
+            </div>
+            <div v-if="getField(filter.id).type == 'SINGLE_SELECT'">
+              <v-select
+                solo
+                flat
+                single-line
+                clearable
+                :items="['equals']"
+                placeholder="Operation"
+                hide-details
+                class="mb-1"
+                v-model="innerValue[i].op"
+                @change="emitValue"
+              ></v-select>
 
-      <div v-if="field.type == 'STRING'">
-        <v-select
-          solo
-          flat
-          single-line
-          clearable
-          :items="['equals', 'contains']"
-          placeholder="Operation"
-          hide-details
-          class="mb-1"
-          v-model="ops[field._id]"
-          @change="emitValue"
-        ></v-select>
+              <v-select
+                clearable
+                style="width:100%"
+                solo
+                flat
+                single-line
+                color="primary"
+                :placeholder="getField(filter.id).name"
+                v-model="innerValue[i].value"
+                :items="getField(filter.id).values"
+                @change="emitValue"
+                hide-details
+                :suffix="getField(filter.id).unit"
+              />
+            </div>
+            <div v-else-if="getField(filter.id).type == 'MULTI_SELECT'">
+              <v-select
+                hide-details
+                class="mb-1"
+                solo
+                flat
+                single-line
+                clearable
+                :items="['contains']"
+                placeholder="Operation"
+                v-model="innerValue[i].op"
+                @change="emitValue"
+              ></v-select>
 
-        <v-text-field
-          clearable
-          style="width:100%"
-          solo
-          flat
-          single-line
-          :placeholder="field.name"
-          v-model="values[field._id]"
-          @input="emitValue"
-          hide-details
-          color="primary"
-          :suffix="field.unit"
-          :disabled="!ops[field._id]"
-        />
-      </div>
+              <v-select
+                clearable
+                style="width:100%"
+                solo
+                flat
+                single-line
+                color="primary"
+                :placeholder="getField(filter.id).name"
+                v-model="innerValue[i].value"
+                :items="getField(filter.id).values"
+                @change="emitValue"
+                hide-details
+                :suffix="getField(filter.id).unit"
+              />
+            </div>
+            <div v-else-if="getField(filter.id).type == 'BOOLEAN'">
+              <v-select
+                hide-details
+                class="mb-1"
+                solo
+                flat
+                single-line
+                clearable
+                :items="['equals']"
+                placeholder="Operation"
+                v-model="innerValue[i].op"
+                @change="emitValue"
+              ></v-select>
 
-      <div v-if="field.type == 'SINGLE_SELECT'">
-        <v-select
-          solo
-          flat
-          single-line
-          clearable
-          :items="['equals']"
-          placeholder="Operation"
-          hide-details
-          class="mb-1"
-          v-model="ops[field._id]"
-          @change="emitValue"
-        ></v-select>
-
-        <v-select
-          clearable
-          style="width:100%"
-          solo
-          flat
-          single-line
-          color="primary"
-          :placeholder="field.name"
-          v-model="values[field._id]"
-          :items="field.values"
-          @change="emitValue"
-          hide-details
-          :suffix="field.unit"
-          :disabled="!ops[field._id]"
-        />
-      </div>
-
-      <div v-if="field.type == 'MULTI_SELECT'">
-        <v-select
-          hide-details
-          class="mb-1"
-          solo
-          flat
-          single-line
-          clearable
-          :items="['contains']"
-          placeholder="Operation"
-          v-model="ops[field._id]"
-          @change="emitValue"
-        ></v-select>
-
-        <v-select
-          clearable
-          style="width:100%"
-          solo
-          flat
-          single-line
-          color="primary"
-          :placeholder="field.name"
-          v-model="values[field._id]"
-          :items="field.values"
-          @change="emitValue"
-          hide-details
-          :suffix="field.unit"
-          :disabled="!ops[field._id]"
-        />
-      </div>
-
-      <div v-if="field.type == 'BOOLEAN'">
-        <v-select
-          hide-details
-          class="mb-1"
-          solo
-          flat
-          single-line
-          clearable
-          :items="['equals']"
-          placeholder="Operation"
-          v-model="ops[field._id]"
-          @change="emitValue"
-        ></v-select>
-
-        <v-checkbox
-          class="mt-0"
-          v-model="values[field._id]"
-          @change="emitValue"
-          color="primary"
-          hide-details
-          :label="values[field._id]===true ? 'Yes' : 'No'"
-          :disabled="!ops[field._id]"
-        />
-      </div>
-    </v-col>
-  </v-row>
+              <v-checkbox
+                class="mt-0"
+                v-model="innerValue[i].value"
+                @change="emitValue"
+                color="primary"
+                hide-details
+                :label="innerValue[i].value === true ? 'Yes' : 'No'"
+              />
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+    <div class="d-flex text-center">
+      <v-select
+        v-model="selectedFieldId"
+        solo
+        single-line
+        flat
+        placeholder="Select custom field"
+        :items="fields"
+        item-text="name"
+        item-value="_id"
+      ></v-select>
+      <v-btn text @click="addFilter" class="mt-3 text-none" color="primary">Add filter</v-btn>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -160,19 +175,30 @@ import gql from "graphql-tag";
 
 @Component
 export default class CustomFieldSelector extends Vue {
-  @Prop({ default: () => [] }) value!: any[];
-  @Prop() fields!: any;
-  @Prop({ default: () => ({}) }) values!: Record<string, any>;
-  @Prop({ default: () => ({}) }) ops!: Record<string, any>;
+  @Prop({ default: () => [] }) value!: { id: string; op: string; value: any }[];
+  @Prop() fields!: any[];
 
   innerValue = [] as { id: string; op: string; value: any }[];
+  selectedFieldId = null as string | null;
+
+  getField(id: string) {
+    return this.fields.find(f => f._id == id);
+  }
 
   beforeMount() {
     this.innerValue = JSON.parse(JSON.stringify(this.value));
-    for (const obj of this.innerValue) {
-      this.values[obj.id] = obj.value;
-      this.ops[obj.id] = obj.op;
-    }
+  }
+
+  addFilter() {
+    if (!this.selectedFieldId) return;
+    this.innerValue.push(<any>{
+      id: this.selectedFieldId
+    });
+  }
+
+  splice(index: number) {
+    this.innerValue.splice(index, 1);
+    this.emitValue();
   }
 
   @Watch("value", { deep: true })
@@ -180,20 +206,8 @@ export default class CustomFieldSelector extends Vue {
     this.innerValue = newVal;
   }
 
-  emitValue(newVal: any) {
-    this.innerValue = [];
-    for (const id in this.values) {
-      const value = this.values[id];
-      const op = this.ops[id];
-      if (value && op) {
-        this.innerValue.push({
-          id,
-          op,
-          value
-        });
-      }
-    }
-    this.$emit("input", this.innerValue);
+  emitValue() {
+    this.$emit("input", JSON.parse(JSON.stringify(this.innerValue)));
     this.$emit("change");
   }
 }
