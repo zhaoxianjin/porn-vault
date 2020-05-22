@@ -74,8 +74,14 @@
           placeholder="Sort direction"
           :items="sortDirItems"
         ></v-select>
-
-        <!-- <CustomFieldFilter :fields="fields" /> -->
+        <div class="mt-3 text-center">
+          <v-btn
+            @click="customDialog=true"
+            text
+            class="text-center text-none"
+            color="primary"
+          >Filter custom fields</v-btn>
+        </div>
       </v-container>
     </v-navigation-drawer>
 
@@ -248,6 +254,19 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog scrollable max-width="750px" v-model="customDialog">
+      <v-card v-if="customDialog">
+        <v-card-title>Filter custom fields</v-card-title>
+        <v-card-text style="max-height: 500px">
+          <CustomFieldFilter v-model="customFilter" :fields="fields" />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn @click="onCustomChange" text color="primary" class="text-none">Apply</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -297,6 +316,15 @@ export default class ActorList extends mixins(DrawerMixin) {
   actorsBulkText = "" as string | null;
   bulkImportDialog = false;
   bulkLoader = false;
+
+  customFilter = (() => {
+    const itemStr = localStorage.getItem("pm_actorCustomFilter");
+    if (itemStr) {
+      return JSON.parse(itemStr);
+    }
+    return [];
+  })() as any[];
+  customDialog = false;
 
   get showCardLabels() {
     return contextModule.showCardLabels;
@@ -590,6 +618,15 @@ export default class ActorList extends mixins(DrawerMixin) {
     this.loadPage(this.page);
   }
 
+  onCustomChange() {
+    localStorage.setItem(
+      "pm_actorCustomFilter",
+      JSON.stringify(this.customFilter)
+    );
+    actorModule.resetPagination();
+    this.loadPage(this.page);
+  }
+
   @Watch("selectedLabels")
   onLabelChange() {
     actorModule.resetPagination();
@@ -647,8 +684,8 @@ export default class ActorList extends mixins(DrawerMixin) {
 
       const result = await ApolloClient.query({
         query: gql`
-          query($query: String, $seed: String) {
-            getActors(query: $query, seed: $seed) {
+          query($query: String, $seed: String, $custom: [CustomFieldFilter!]!) {
+            getActors(query: $query, seed: $seed, custom: $custom) {
               items {
                 ...ActorFragment
                 labels {
@@ -672,7 +709,8 @@ export default class ActorList extends mixins(DrawerMixin) {
         `,
         variables: {
           query,
-          seed: seed || localStorage.getItem("pm_seed") || "default"
+          seed: seed || localStorage.getItem("pm_seed") || "default",
+          custom: this.customFilter
         }
       });
 

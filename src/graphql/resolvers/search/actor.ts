@@ -1,14 +1,19 @@
 import Actor from "../../../types/actor";
 import * as logger from "../../../logger";
 import { searchActors } from "../../../search/actor";
+import { CustomFieldFilter } from "../../../search/index";
 
 export async function getActors(
   _,
-  { query, seed }: { query?: string; seed?: string }
+  {
+    query,
+    custom,
+    seed,
+  }: { query?: string; custom: CustomFieldFilter[]; seed?: string }
 ) {
   try {
     const timeNow = +new Date();
-    const result = await searchActors(query || "", seed);
+    const result = await searchActors(query || "", seed, custom);
 
     logger.log(
       `Search results: ${result.max_items} hits found in ${

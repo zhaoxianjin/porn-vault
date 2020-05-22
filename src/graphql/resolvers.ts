@@ -11,9 +11,10 @@ import CustomFieldResolver from "./resolvers/custom_field";
 import MarkerResolver from "./resolvers/marker";
 import SceneViewResolver from "./resolvers/scene_view";
 
-import { GraphQLJSONObject } from "graphql-type-json";
+import GraphQLJSON, { GraphQLJSONObject } from "graphql-type-json";
 
 const resolvers = {
+  Json: GraphQLJSON,
   Long: GraphQLLong,
   Object: GraphQLJSONObject,
 

@@ -46,9 +46,19 @@ export default gql`
     items: [Actor!]!
   }
 
+  input CustomFieldFilter {
+    id: String!
+    op: String!
+    value: Json!
+  }
+
   extend type Query {
     numActors: Int!
-    getActors(query: String, seed: String): ActorSearchResults!
+    getActors(
+      query: String
+      custom: [CustomFieldFilter!]
+      seed: String
+    ): ActorSearchResults!
     getActorById(id: String!): Actor
     topActors(skip: Int, take: Int): [Actor!]!
     getActorsWithoutScenes(num: Int): [Actor!]!

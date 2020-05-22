@@ -14,6 +14,8 @@ import {
   filterInclude,
   filterExclude,
 } from "./common";
+import { CustomFieldFilter } from "./index";
+import CustomField from "../types/custom_field";
 
 const PAGE_SIZE = 24;
 
@@ -37,7 +39,8 @@ export interface IActorSearchDoc {
   age: number | null;
   numScenes: number;
   nationality: string | null;
-  custom: string[];
+  custom: string[]; // Custom field content to index
+  customFields: any;
 }
 
 export async function createActorSearchDoc(
@@ -69,6 +72,7 @@ export async function createActorSearchDoc(
     custom: Object.values(actor.customFields)
       .filter((val) => typeof val != "number" && typeof val != "boolean")
       .flat() as string[],
+    customFields: actor.customFields,
   };
 }
 
@@ -118,7 +122,11 @@ export async function buildActorIndex() {
   return index;
 }
 
-export async function searchActors(query: string, shuffleSeed = "default") {
+export async function searchActors(
+  query: string,
+  shuffleSeed = "default",
+  custom: CustomFieldFilter[] = []
+) {
   const options = extractQueryOptions(query);
   logger.log(`Searching actors for '${options.query}'...`);
 
@@ -133,6 +141,41 @@ export async function searchActors(query: string, shuffleSeed = "default") {
   filterRating(filter, options);
   filterInclude(filter, options);
   filterExclude(filter, options);
+
+  if (Object.keys(custom).length) {
+    filter.children.push({
+      type: "AND",
+      children: await Promise.all(
+        Object.values(custom).map(async (filter) => {
+          const field = await CustomField.getById(filter.id);
+
+          const type = {
+            NUMBER: "number",
+            STRING: "string",
+            BOOLEAN: "boolean",
+            SINGLE_SELECT: "string",
+            MULTI_SELECT: "array",
+          }[field!.type];
+
+          const operation = {
+            equals: "=",
+            contains: "?",
+            "greater than": ">",
+            "less than": "<",
+          }[filter!.op];
+
+          return {
+            condition: {
+              operation,
+              property: `customFields.${filter.id}`,
+              type,
+              value: filter.value,
+            },
+          };
+        })
+      ),
+    });
+  }
 
   if (options.sortBy) {
     if (options.sortBy === "$shuffle") {
