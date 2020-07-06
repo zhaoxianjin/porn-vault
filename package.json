@@ -5,6 +5,8 @@
   "main": "build/index.js",
   "bin": "build/index.js",
   "scripts": {
+    "page:dev": "vuepress dev page",
+    "page:build": "vuepress build page",
     "install:app": "cd app && npm ci && cd ..",
     "transpile": "tsc",
     "watch": "tsc -w",
@@ -91,7 +93,8 @@
     "pkg": "^4.4.7",
     "sinon": "^9.0.2",
     "ts-node": "^8.10.2",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "vuepress": "^1.5.2"
   },
   "nodemonConfig": {
     "ignore": [
