@@ -20,12 +20,43 @@ coverage
 # node-waf configuration
 .lock-wscript
 
-# Compiled binary addons (http://nodejs.org/api/addons.html)
-build/Release
-
 # Dependency directory
 # https://docs.npmjs.com/misc/faq#should-i-check-my-node-modules-folder-into-git
 node_modules
-app/out/
+build/
+db\.json
 
-app/library/
+
+config\.json
+
+library/*
+bin/
+
+configg\.json
+/ffmpeg
+/ffprobe
+app/dist/
+release/
+releases/
+tmp/
+backups/
+/plugins/
+imports/
+
+config\.yaml
+
+images\.json
+
+izzy
+izzy.exe
+compat/cross_references\.db
+
+.vscode
+
+config.test.json
+config.test.yaml
+
+gianna
+gianna.exe
+ffmpeg.exe
+ffprobe.exe
