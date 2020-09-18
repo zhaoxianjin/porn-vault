@@ -1,16 +1,10 @@
 <template>
   <div>
     <div v-if="currentActor">
-      <v-img
-        :max-height="500"
-        :aspect-ratio="2.75"
-        v-if="heroImage && $vuetify.breakpoint.smAndUp"
-        :src="heroImage"
-      ></v-img>
       <BindTitle :value="currentActor.name" />
-      <v-container fluid>
+      <v-container fluid class="page-container">
         <v-row>
-          <v-col cols="12" sm="4" md="3" lg="2" xl="2">
+          <v-col cols="12" sm="4" md="3" lg="2" xl="2" class="root-col">
             <v-row>
               <v-col class="pb-0" cols="6" sm="12">
                 <div
@@ -137,73 +131,188 @@
               </v-col>
             </v-row>
           </v-col>
-          <v-col cols="12" sm="8" md="9" lg="10" xl="10">
-            <div class="mb-2">
-              <div v-if="currentActor.description">
-                <div class="d-flex align-center">
-                  <v-icon>mdi-text</v-icon>
-                  <v-subheader>Description</v-subheader>
-                </div>
-                <div class="pa-2 med--text" v-if="currentActor.description">
-                  {{ currentActor.description }}
-                </div>
-              </div>
+          <v-col cols="12" sm="8" md="9" lg="10" xl="10" class="root-col">
+            <v-row>
+              <v-img
+                :aspect-ratio="2.75"
+                v-if="heroImage && $vuetify.breakpoint.smAndUp"
+                :src="heroImage"
+              ></v-img
+            ></v-row>
+            <v-row>
+              <v-col cols="12" sm="8" md="9" lg="10" xl="10">
+                <div class="mb-2">
+                  <div v-if="currentActor.description">
+                    <div class="d-flex align-center">
+                      <v-icon>mdi-text</v-icon>
+                      <v-subheader>Description</v-subheader>
+                    </div>
+                    <div class="pa-2 med--text" v-if="currentActor.description">
+                      {{ currentActor.description }}
+                    </div>
+                  </div>
 
-              <Collabs class="mb-3" :name="currentActor.name" :collabs="collabs" />
-            </div>
-            <v-tabs
-              v-model="activeTab"
-              background-color="transparent"
-              color="primary"
-              centered
-              grow
-            >
-              <v-tab>Metadata</v-tab>
-              <v-tab>Scenes</v-tab>
-              <v-tab>Movies</v-tab>
-              <v-tab>Images</v-tab>
-            </v-tabs>
-            <div class="pa-2" v-if="activeTab == 0">
-              <div class="text-center py-2">
-                <v-btn
-                  class="text-none"
+                  <Collabs class="mb-3" :name="currentActor.name" :collabs="collabs" />
+                </div>
+                <v-tabs
+                  v-model="activeTab"
+                  background-color="transparent"
                   color="primary"
-                  text
-                  @click="updateCustomFields"
-                  :disabled="!hasUpdatedFields"
-                  >Update</v-btn
+                  centered
+                  grow
                 >
-              </div>
-              <CustomFieldSelector
-                :fields="currentActor.availableFields"
-                v-model="editCustomFields"
-                @change="hasUpdatedFields = true"
-              />
-            </div>
-            <div class="pa-2" v-if="activeTab == 1">
-              <v-row>
-                <v-col cols="12">
-                  <!-- <h1 class="text-center font-weight-light">{{ scenes.length }} Scenes</h1> -->
+                  <v-tab>Metadata</v-tab>
+                  <v-tab>Scenes</v-tab>
+                  <v-tab>Movies</v-tab>
+                  <v-tab>Images</v-tab>
+                </v-tabs>
+                <div class="pa-2" v-if="activeTab == 0">
+                  <div class="text-center py-2">
+                    <v-btn
+                      class="text-none"
+                      color="primary"
+                      text
+                      @click="updateCustomFields"
+                      :disabled="!hasUpdatedFields"
+                      >Update</v-btn
+                    >
+                  </div>
+                  <CustomFieldSelector
+                    :fields="currentActor.availableFields"
+                    v-model="editCustomFields"
+                    @change="hasUpdatedFields = true"
+                  />
+                </div>
+                <div class="pa-2" v-if="activeTab == 1">
+                  <v-row>
+                    <v-col cols="12">
+                      <!-- <h1 class="text-center font-weight-light">{{ scenes.length }} Scenes</h1> -->
 
+                      <v-row>
+                        <v-col
+                          class="pa-1"
+                          v-for="(scene, i) in scenes"
+                          :key="scene._id"
+                          cols="12"
+                          sm="6"
+                          md="4"
+                          lg="3"
+                          xl="2"
+                        >
+                          <scene-card v-model="scenes[i]" style="height: 100%;" />
+                        </v-col>
+                      </v-row>
+
+                      <infinite-loading
+                        v-if="currentActor"
+                        :identifier="sceneInfiniteId"
+                        @infinite="sceneInfiniteHandler"
+                      >
+                        <div slot="no-results">
+                          <v-icon large>mdi-close</v-icon>
+                          <div>Nothing found!</div>
+                        </div>
+
+                        <div class="mt-3" slot="spinner">
+                          <div>Loading...</div>
+                          <v-progress-circular indeterminate></v-progress-circular>
+                        </div>
+
+                        <div slot="no-more">
+                          <v-icon large>mdi-emoticon-wink</v-icon>
+                          <div>That's all!</div>
+                        </div>
+                      </infinite-loading>
+                    </v-col>
+                  </v-row>
+                </div>
+                <div class="pa-2" v-if="activeTab == 2">
                   <v-row>
                     <v-col
                       class="pa-1"
-                      v-for="(scene, i) in scenes"
-                      :key="scene._id"
+                      v-for="(movie, i) in movies"
+                      :key="movie._id"
                       cols="12"
                       sm="6"
                       md="4"
                       lg="3"
                       xl="2"
                     >
-                      <scene-card v-model="scenes[i]" style="height: 100%;" />
+                      <movie-card v-model="movies[i]" style="height: 100%;" />
                     </v-col>
                   </v-row>
+                </div>
+                <div class="pa-2" v-if="activeTab == 3">
+                  <div v-if="images.length">
+                    <div class="d-flex align-center">
+                      <v-spacer></v-spacer>
+                      <h1 class="font-weight-light mr-3">{{ images.length }} Images</h1>
+                      <v-btn @click="openUploadDialog" icon>
+                        <v-icon>mdi-upload</v-icon>
+                      </v-btn>
+                      <v-spacer></v-spacer>
+                    </div>
+                    <v-container fluid>
+                      <v-row>
+                        <v-col
+                          class="pa-0"
+                          v-for="(image, index) in images"
+                          :key="image._id"
+                          cols="6"
+                          sm="4"
+                          md="3"
+                          lg="3"
+                          xl="2"
+                        >
+                          <ImageCard
+                            @open="lightboxIndex = index"
+                            width="100%"
+                            height="100%"
+                            :image="image"
+                            :contain="true"
+                          >
+                            <template v-slot:action>
+                              <v-menu offset-y>
+                                <template v-slot:activator="{ on }">
+                                  <v-btn
+                                    style="background: #000000aa;"
+                                    @click.native.stop
+                                    icon
+                                    v-on="on"
+                                  >
+                                    <v-icon class="white--text">mdi-menu</v-icon>
+                                  </v-btn>
+                                </template>
+                                <v-list>
+                                  <v-list-item v-ripple @click="setAsThumbnail(image._id)">
+                                    <v-list-item-title>Set as thumbnail</v-list-item-title>
+                                  </v-list-item>
+                                  <v-list-item v-ripple @click="setAsAltThumbnail(image._id)">
+                                    <v-list-item-title>Set as alt. thumbnail</v-list-item-title>
+                                  </v-list-item>
+                                  <v-list-item v-ripple @click="setAsAvatar(image._id)">
+                                    <v-list-item-title>Set as avatar</v-list-item-title>
+                                  </v-list-item>
+                                  <v-list-item v-ripple @click="setAsHero(image._id)">
+                                    <v-list-item-title>Set as hero</v-list-item-title>
+                                  </v-list-item>
+                                  <v-divider></v-divider>
+                                  <v-list-item v-ripple @click="lightboxIndex = index"
+                                    >Show details</v-list-item
+                                  >
+                                </v-list>
+                              </v-menu>
+                            </template>
+                          </ImageCard>
+                        </v-col>
+                      </v-row>
+                    </v-container>
+                  </div>
 
                   <infinite-loading
                     v-if="currentActor"
-                    :identifier="sceneInfiniteId"
-                    @infinite="sceneInfiniteHandler"
+                    :identifier="infiniteId"
+                    @infinite="infiniteHandler"
                   >
                     <div slot="no-results">
                       <v-icon large>mdi-close</v-icon>
@@ -220,113 +329,9 @@
                       <div>That's all!</div>
                     </div>
                   </infinite-loading>
-                </v-col>
-              </v-row>
-            </div>
-            <div class="pa-2" v-if="activeTab == 2">
-              <v-row>
-                <v-col
-                  class="pa-1"
-                  v-for="(movie, i) in movies"
-                  :key="movie._id"
-                  cols="12"
-                  sm="6"
-                  md="4"
-                  lg="3"
-                  xl="2"
-                >
-                  <movie-card v-model="movies[i]" style="height: 100%;" />
-                </v-col>
-              </v-row>
-            </div>
-            <div class="pa-2" v-if="activeTab == 3">
-              <div v-if="images.length">
-                <div class="d-flex align-center">
-                  <v-spacer></v-spacer>
-                  <h1 class="font-weight-light mr-3">{{ images.length }} Images</h1>
-                  <v-btn @click="openUploadDialog" icon>
-                    <v-icon>mdi-upload</v-icon>
-                  </v-btn>
-                  <v-spacer></v-spacer>
                 </div>
-                <v-container fluid>
-                  <v-row>
-                    <v-col
-                      class="pa-0"
-                      v-for="(image, index) in images"
-                      :key="image._id"
-                      cols="6"
-                      sm="4"
-                      md="3"
-                      lg="3"
-                      xl="2"
-                    >
-                      <ImageCard
-                        @open="lightboxIndex = index"
-                        width="100%"
-                        height="100%"
-                        :image="image"
-                        :contain="true"
-                      >
-                        <template v-slot:action>
-                          <v-menu offset-y>
-                            <template v-slot:activator="{ on }">
-                              <v-btn
-                                style="background: #000000aa;"
-                                @click.native.stop
-                                icon
-                                v-on="on"
-                              >
-                                <v-icon class="white--text">mdi-menu</v-icon>
-                              </v-btn>
-                            </template>
-                            <v-list>
-                              <v-list-item v-ripple @click="setAsThumbnail(image._id)">
-                                <v-list-item-title>Set as thumbnail</v-list-item-title>
-                              </v-list-item>
-                              <v-list-item v-ripple @click="setAsAltThumbnail(image._id)">
-                                <v-list-item-title>Set as alt. thumbnail</v-list-item-title>
-                              </v-list-item>
-                              <v-list-item v-ripple @click="setAsAvatar(image._id)">
-                                <v-list-item-title>Set as avatar</v-list-item-title>
-                              </v-list-item>
-                              <v-list-item v-ripple @click="setAsHero(image._id)">
-                                <v-list-item-title>Set as hero</v-list-item-title>
-                              </v-list-item>
-                              <v-divider></v-divider>
-                              <v-list-item v-ripple @click="lightboxIndex = index"
-                                >Show details</v-list-item
-                              >
-                            </v-list>
-                          </v-menu>
-                        </template>
-                      </ImageCard>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </div>
-
-              <infinite-loading
-                v-if="currentActor"
-                :identifier="infiniteId"
-                @infinite="infiniteHandler"
-              >
-                <div slot="no-results">
-                  <v-icon large>mdi-close</v-icon>
-                  <div>Nothing found!</div>
-                </div>
-
-                <div class="mt-3" slot="spinner">
-                  <div>Loading...</div>
-                  <v-progress-circular indeterminate></v-progress-circular>
-                </div>
-
-                <div slot="no-more">
-                  <v-icon large>mdi-emoticon-wink</v-icon>
-                  <div>That's all!</div>
-                </div>
-              </infinite-loading>
-            </div>
+              </v-col>
+            </v-row>
           </v-col>
         </v-row>
         <transition name="fade">
@@ -1675,11 +1680,14 @@ export default class ActorDetails extends Vue {
 </script>
 
 <style lang="scss" scoped>
+.page-container,
+.root-col {
+  padding-top: 0;
+}
 .thumb-margin-top {
   margin-top: -160px;
 }
 .avatar-margin-top {
-  margin-top: -120px;
 }
 .avatar {
   max-width: 100%;
