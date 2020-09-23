@@ -36,6 +36,7 @@ import Actor from "./types/actor";
 import Image from "./types/image";
 import Scene from "./types/scene";
 import SceneView from "./types/watch";
+import { useRenamerRoutes } from "./renamer";
 
 const cache = new LRU({
   max: 500,
@@ -281,6 +282,8 @@ export default async (): Promise<void> => {
     logger.warn("Try restarting, if the error persists, your database may be corrupted");
     process.exit(1);
   }
+
+  useRenamerRoutes(app);
 
   setupMessage = "Loading search engine...";
   if (await giannaVersion()) {
