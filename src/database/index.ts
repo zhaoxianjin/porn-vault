@@ -23,36 +23,43 @@ import { Izzy } from "./internal/index";
 mkdirp.sync("backups/");
 mkdirp.sync("tmp/");
 
-export let sceneCollection!: Izzy.Collection<Scene>;
-export let imageCollection!: Izzy.Collection<Image>;
-export let actorCollection!: Izzy.Collection<Actor>;
-export let movieCollection!: Izzy.Collection<Movie>;
-export let labelledItemCollection!: Izzy.Collection<LabelledItem>;
-export let movieSceneCollection!: Izzy.Collection<MovieScene>;
-export let actorReferenceCollection!: Izzy.Collection<ActorReference>;
-// export let markerReferenceCollection!: Izzy.Collection<MarkerReference>;
-export let viewCollection!: Izzy.Collection<SceneView>;
-export let labelCollection!: Izzy.Collection<Label>;
-export let customFieldCollection!: Izzy.Collection<CustomField>;
-export let markerCollection!: Izzy.Collection<Marker>;
-export let studioCollection!: Izzy.Collection<Studio>;
-export let processingCollection!: Izzy.Collection<ISceneProcessingItem>;
+export let sceneCollection: Izzy.Collection<Scene> = new Izzy.Collection("scenes");
+export let imageCollection: Izzy.Collection<Image> = new Izzy.Collection("images");
+export let actorCollection: Izzy.Collection<Actor> = new Izzy.Collection("actors");
+export let movieCollection: Izzy.Collection<Movie> = new Izzy.Collection("movies");
+export let labelledItemCollection: Izzy.Collection<LabelledItem> = new Izzy.Collection(
+  "labelled-items"
+);
+export let movieSceneCollection: Izzy.Collection<MovieScene> = new Izzy.Collection("movie-scenes");
+export let actorReferenceCollection: Izzy.Collection<ActorReference> = new Izzy.Collection(
+  "actor-references"
+);
+export let viewCollection: Izzy.Collection<SceneView> = new Izzy.Collection("scene_views");
+export let labelCollection: Izzy.Collection<Label> = new Izzy.Collection("labels");
+export let customFieldCollection: Izzy.Collection<CustomField> = new Izzy.Collection(
+  "custom_fields"
+);
+export let markerCollection: Izzy.Collection<Marker> = new Izzy.Collection("markers");
+export let studioCollection: Izzy.Collection<Studio> = new Izzy.Collection("studios");
+export let processingCollection: Izzy.Collection<ISceneProcessingItem> = new Izzy.Collection(
+  "processing"
+);
+
+try {
+  mkdirp.sync(libraryPath("images/"));
+  mkdirp.sync(libraryPath("thumbnails/")); // generated screenshots
+  mkdirp.sync(libraryPath("thumbnails/markers")); // generated marker thumbnails
+  mkdirp.sync(libraryPath("previews/"));
+} catch (err) {
+  const _err = <Error>err;
+  logger.error(_err.message);
+}
 
 export async function loadStores(): Promise<void> {
   const crossReferencePath = libraryPath("cross_references.db");
   if (existsSync(crossReferencePath)) {
     logger.error("cross_references.db found, are you using an outdated library?");
     process.exit(1);
-  }
-
-  try {
-    mkdirp.sync(libraryPath("images/"));
-    mkdirp.sync(libraryPath("thumbnails/")); // generated screenshots
-    mkdirp.sync(libraryPath("thumbnails/markers")); // generated marker thumbnails
-    mkdirp.sync(libraryPath("previews/"));
-  } catch (err) {
-    const _err = <Error>err;
-    logger.error(_err.message);
   }
 
   const dbLoader = ora("Loading DB...").start();
@@ -71,21 +78,6 @@ export async function loadStores(): Promise<void> {
       name: "scene-index",
     },
   ]);
-
-  /* markerReferenceCollection = await Izzy.createCollection(
-    "marker-references",
-    libraryPath("marker_references.db"),
-    [
-      {
-        name: "marker-index",
-        key: "marker",
-      },
-      {
-        name: "scene-index",
-        key: "scene",
-      },
-    ]
-  ); */
 
   actorReferenceCollection = await Izzy.createCollection(
     "actor-references",

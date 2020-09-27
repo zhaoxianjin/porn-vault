@@ -17,7 +17,7 @@ import { Gianna } from "./internal/index";
 
 const PAGE_SIZE = 24;
 
-export let index!: Gianna.Index<IMarkerSearchDoc>;
+export let index: Gianna.Index<IMarkerSearchDoc> = new Gianna.Index("markers");
 
 const FIELDS = ["name", "labelNames", "sceneName"];
 

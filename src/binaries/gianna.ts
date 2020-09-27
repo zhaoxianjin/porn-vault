@@ -100,7 +100,9 @@ export function spawnGianna(): Promise<void> {
 
     const port = getConfig().binaries.giannaPort;
 
-    giannaProcess = spawn("./" + giannaPath, ["--port", port.toString()]);
+    giannaProcess = spawn("./" + giannaPath, ["--port", port.toString()], {
+      detached: true,
+    });
     let responded = false;
     giannaProcess.on("error", (err: Error) => {
       reject(err);
@@ -116,5 +118,6 @@ export function spawnGianna(): Promise<void> {
     giannaProcess.stderr.on("data", (data: Buffer) => {
       logger.gianna(data.toString());
     });
+    giannaProcess.unref();
   });
 }

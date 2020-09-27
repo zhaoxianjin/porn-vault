@@ -18,7 +18,7 @@ import { Gianna } from "./internal/index";
 
 const PAGE_SIZE = 24;
 
-export let index!: Gianna.Index<IActorSearchDoc>;
+export let index: Gianna.Index<IActorSearchDoc> = new Gianna.Index("actors");
 
 const FIELDS = ["name", "aliases", "labelNames", "custom", "nationalityName"];
 

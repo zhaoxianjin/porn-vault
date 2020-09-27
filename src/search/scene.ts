@@ -21,7 +21,7 @@ import { Gianna } from "./internal/index";
 
 const PAGE_SIZE = 24;
 
-export let index!: Gianna.Index<ISceneSearchDoc>;
+export let index: Gianna.Index<ISceneSearchDoc> = new Gianna.Index("scenes");
 
 export interface ISceneSearchDoc {
   _id: string;

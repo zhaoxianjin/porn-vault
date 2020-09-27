@@ -18,7 +18,7 @@ import { Gianna } from "./internal";
 
 const PAGE_SIZE = 24;
 
-export let index!: Gianna.Index<IImageSearchDoc>;
+export let index: Gianna.Index<IImageSearchDoc> = new Gianna.Index("images");
 
 const FIELDS = ["name", "labels", "actors", "studioName", "sceneName", "actorNames", "labelNames"];
 

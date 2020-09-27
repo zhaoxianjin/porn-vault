@@ -20,7 +20,7 @@ import { Gianna } from "./internal/index";
 
 const PAGE_SIZE = 24;
 
-export let index!: Gianna.Index<IMovieSearchDoc>;
+export let index: Gianna.Index<IMovieSearchDoc> = new Gianna.Index("movies");
 
 const FIELDS = ["name", "actorNames", "labelNames", "studioName"];
 

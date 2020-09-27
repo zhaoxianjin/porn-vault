@@ -100,7 +100,9 @@ export function spawnIzzy(): Promise<void> {
 
     const port = getConfig().binaries.izzyPort;
 
-    izzyProcess = spawn("./" + izzyPath, ["--port", port.toString()]);
+    izzyProcess = spawn("./" + izzyPath, ["--port", port.toString()], {
+      detached: true,
+    });
     let responded = false;
     izzyProcess.on("error", (err: Error) => {
       reject(err);
@@ -116,5 +118,6 @@ export function spawnIzzy(): Promise<void> {
     izzyProcess.stderr.on("data", (data: Buffer) => {
       logger.izzy(data.toString());
     });
+    izzyProcess.unref();
   });
 }

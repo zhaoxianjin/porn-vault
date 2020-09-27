@@ -10,7 +10,7 @@ import { Gianna } from "./internal";
 
 const PAGE_SIZE = 24;
 
-export let index!: Gianna.Index<IStudioSearchDoc>;
+export let index: Gianna.Index<IStudioSearchDoc> = new Gianna.Index("studios");
 
 const FIELDS = ["name", "labelNames"];
 

@@ -30,6 +30,7 @@ import SceneView from "./types/watch";
 import * as logger from "./utils/logger";
 import { httpLog } from "./utils/logger";
 import { renderHandlebars } from "./utils/render";
+import args from "./args";
 
 const cache = new LRU({
   max: 500,
@@ -39,9 +40,7 @@ const cache = new LRU({
 let serverReady = false;
 let setupMessage = "Setting up...";
 
-const VERSION = require(
-  path. resolve("./assets/version.json")
-).version;
+const VERSION = require(path.resolve("./assets/version.json")).version;
 
 export default async (): Promise<void> => {
   logger.message("Check https://github.com/boi123212321/porn-vault for discussion & updates");
@@ -54,7 +53,7 @@ export default async (): Promise<void> => {
 
   app.get("/version", (req, res) => {
     res.json({
-      result: VERSION
+      result: VERSION,
     });
   });
 
@@ -286,21 +285,29 @@ export default async (): Promise<void> => {
   }
 
   setupMessage = "Loading database...";
+  let spawnedIzzy = false;
+
   if (await izzyVersion()) {
-    logger.log("Izzy already running, clearing...");
-    await resetIzzy();
+    logger.log("Izzy already running");
+    if (args["hard-restart"]) {
+      logger.log("Clearing Izzy");
+      await resetIzzy();
+    }
   } else {
     await spawnIzzy();
+    spawnedIzzy = true;
   }
 
-  try {
-    await loadStores();
-  } catch (error) {
-    const _err = <Error>error;
-    logger.error(_err);
-    logger.error(`Error while loading database: ${_err.message}`);
-    logger.warn("Try restarting, if the error persists, your database may be corrupted");
-    process.exit(1);
+  if (args["hard-restart"] || spawnedIzzy) {
+    try {
+      await loadStores();
+    } catch (error) {
+      const _err = <Error>error;
+      logger.error(_err);
+      logger.error(`Error while loading database: ${_err.message}`);
+      logger.warn("Try restarting, if the error persists, your database may be corrupted");
+      process.exit(1);
+    }
   }
 
   app.get("/ffprobe/:scene", async (req, res) => {
@@ -316,18 +323,26 @@ export default async (): Promise<void> => {
   });
 
   setupMessage = "Loading search engine...";
+  let spawnedGianna = false;
+
   if (await giannaVersion()) {
-    logger.log("Gianna already running, clearing...");
-    await resetGianna();
+    logger.log("Gianna already running");
+    if (args["hard-restart"]) {
+      logger.log("Clearing Gianna...");
+      await resetGianna();
+    }
   } else {
     await spawnGianna();
+    spawnedGianna = true;
   }
 
   setupMessage = "Checking imports...";
   await checkImportFolders();
 
-  setupMessage = "Building search indices...";
-  await buildIndices();
+  if (args["hard-restart"] || spawnedGianna) {
+    setupMessage = "Building search indices...";
+    await buildIndices();
+  }
 
   serverReady = true;
 

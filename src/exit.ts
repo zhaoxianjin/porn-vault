@@ -1,16 +1,19 @@
 import { giannaProcess } from "./binaries/gianna";
 import { izzyProcess } from "./binaries/izzy";
 import * as logger from "./utils/logger";
+import args from "./args";
 
 function killProcess(code = 0) {
   return () => {
-    if (izzyProcess) {
-      logger.log("Killing izzy...");
-      izzyProcess.kill();
-    }
-    if (giannaProcess) {
-      logger.log("Killing gianna...");
-      giannaProcess.kill();
+    if (args["hard-restart"]) {
+      if (izzyProcess) {
+        logger.log("Killing izzy...");
+        izzyProcess.kill();
+      }
+      if (giannaProcess) {
+        logger.log("Killing gianna...");
+        giannaProcess.kill();
+      }
     }
 
     // When running tests, we want to be able to cleanup any services,
