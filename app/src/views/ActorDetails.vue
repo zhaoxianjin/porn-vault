@@ -4,17 +4,17 @@
       <BindTitle :value="currentActor.name" />
       <v-container fluid class="page-container">
         <v-row>
-          <v-col cols="12" sm="4" md="3" lg="2" xl="2" class="root-col">
-            <v-row>
-              <v-col class="pb-0" cols="6" sm="12">
+          <v-col cols="12" sm="12" md="3" lg="2" xl="2" class="root-col">
+            <v-row class="left">
+              <v-col class="pb-0" cols="6" sm="6" md="12">
                 <div
                   v-if="avatar"
-                  :class="$vuetify.breakpoint.xsOnly || !heroImage ? '' : 'avatar-margin-top'"
+                  :class="$vuetify.breakpoint.smAndDown || !heroImage ? '' : 'avatar-margin-top'"
                   class="text-center"
                 >
                   <v-avatar
                     class="elevation-8"
-                    :size="$vuetify.breakpoint.xsOnly ? 150 : 180"
+                    :size="$vuetify.breakpoint.smAndDown ? 150 : 180"
                     :style="`border: 4px solid ${avatarColor}`"
                   >
                     <v-img :src="avatar"></v-img>
@@ -22,18 +22,20 @@
                 </div>
                 <v-hover
                   :class="
-                    $vuetify.breakpoint.xsOnly || !heroImage ? '' : 'elevation-8 thumb-margin-top'
+                    $vuetify.breakpoint.smAndDown || !heroImage
+                      ? ''
+                      : 'elevation-8 thumb-margin-top'
                   "
                   v-else
                 >
                   <template v-slot:default="{ hover }">
-                    <div style="position: relative;" class="text-center">
+                    <div style="position: relative" class="text-center">
                       <img class="avatar" :src="thumbnail" />
 
-                      <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%;">
+                      <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%">
                         <v-fade-transition>
                           <v-img
-                            style="z-index: 5;"
+                            style="z-index: 5"
                             eager
                             cover
                             :src="altThumbnail"
@@ -71,11 +73,7 @@
                 </div>
               </v-col>
 
-              <v-col cols="6" sm="12">
-                <!-- <div class="d-flex align-center">
-                  <v-icon>mdi-information-outline</v-icon>
-                  <v-subheader>General</v-subheader>
-                </div>-->
+              <v-col cols="6" sm="6" md="12">
                 <v-divider class="mb-2"></v-divider>
                 <div class="px-2">
                   <div v-if="currentActor.aliases.length" class="py-1 med--text body-2">
@@ -131,16 +129,15 @@
               </v-col>
             </v-row>
           </v-col>
-          <v-col cols="12" sm="8" md="9" lg="10" xl="10" class="root-col">
+          <v-col cols="12" sm="12" md="9" lg="10" xl="10" class="root-col">
+            <v-img
+              :aspect-ratio="2.75"
+              v-if="heroImage && $vuetify.breakpoint.mdAndUp"
+              :src="heroImage"
+              cover
+            ></v-img>
             <v-row>
-              <v-img
-                :aspect-ratio="2.75"
-                v-if="heroImage && $vuetify.breakpoint.smAndUp"
-                :src="heroImage"
-              ></v-img
-            ></v-row>
-            <v-row>
-              <v-col cols="12" sm="8" md="9" lg="10" xl="10">
+              <v-col cols="12">
                 <div class="mb-2">
                   <div v-if="currentActor.description">
                     <div class="d-flex align-center">
@@ -199,7 +196,7 @@
                           lg="3"
                           xl="2"
                         >
-                          <scene-card v-model="scenes[i]" style="height: 100%;" />
+                          <scene-card v-model="scenes[i]" style="height: 100%" />
                         </v-col>
                       </v-row>
 
@@ -238,7 +235,7 @@
                       lg="3"
                       xl="2"
                     >
-                      <movie-card v-model="movies[i]" style="height: 100%;" />
+                      <movie-card v-model="movies[i]" style="height: 100%" />
                     </v-col>
                   </v-row>
                 </div>
@@ -275,7 +272,7 @@
                               <v-menu offset-y>
                                 <template v-slot:activator="{ on }">
                                   <v-btn
-                                    style="background: #000000aa;"
+                                    style="background: #000000aa"
                                     @click.native.stop
                                     icon
                                     v-on="on"
@@ -363,7 +360,7 @@
           v-model="labelSearchQuery"
         />
 
-        <v-card-text style="max-height: 400px;">
+        <v-card-text style="max-height: 400px">
           <LabelSelector
             :searchQuery="labelSearchQuery"
             :items="allLabels"
@@ -408,7 +405,7 @@
           ></v-file-input>
           <div v-if="avatarDisplay" class="text-center">
             <cropper
-              style="height: 400px;"
+              style="height: 400px"
               class="cropper"
               :src="avatarDisplay"
               :stencilProps="{ aspectRatio: 1 }"
@@ -444,7 +441,7 @@
           ></v-file-input>
           <div v-if="thumbnailDisplay" class="text-center">
             <cropper
-              style="height: 400px;"
+              style="height: 400px"
               class="cropper"
               :src="thumbnailDisplay"
               :stencilProps="{ aspectRatio: aspectRatio }"
@@ -479,7 +476,7 @@
           ></v-file-input>
           <div v-if="altThumbnailDisplay" class="text-center">
             <cropper
-              style="height: 400px;"
+              style="height: 400px"
               class="cropper"
               :src="altThumbnailDisplay"
               :stencilProps="{ aspectRatio: aspectRatio }"
@@ -514,7 +511,7 @@
           ></v-file-input>
           <div v-if="heroDisplay" class="text-center">
             <cropper
-              style="height: 400px;"
+              style="height: 400px"
               class="cropper"
               :src="heroDisplay"
               :stencilProps="{ aspectRatio: 2.75 }"
@@ -1684,11 +1681,21 @@ export default class ActorDetails extends Vue {
 .root-col {
   padding-top: 0;
 }
+
+.root-col {
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+
+  .left {
+    position: sticky;
+  }
+}
+
 .thumb-margin-top {
   margin-top: -160px;
 }
-.avatar-margin-top {
-}
+
 .avatar {
   max-width: 100%;
 }
