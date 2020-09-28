@@ -12,8 +12,8 @@
                 <v-subheader>Scene cards aspect ratio</v-subheader>
                 <v-radio-group v-model="sceneRatio">
                   <v-radio color="primary" :value="1" label="Square"></v-radio>
-                  <v-radio color="primary" :value="16/9" label="16:9"></v-radio>
-                  <v-radio color="primary" :value="4/3" label="4:3"></v-radio>
+                  <v-radio color="primary" :value="16 / 9" label="16:9"></v-radio>
+                  <v-radio color="primary" :value="4 / 3" label="4:3"></v-radio>
                 </v-radio-group>
               </div>
 
@@ -21,8 +21,8 @@
                 <v-subheader>Actor cards aspect ratio</v-subheader>
                 <v-radio-group v-model="actorRatio">
                   <v-radio color="primary" :value="1" label="Square"></v-radio>
-                  <v-radio color="primary" :value="9/16" label="9:16"></v-radio>
-                  <v-radio color="primary" :value="3/4" label="3:4"></v-radio>
+                  <v-radio color="primary" :value="9 / 16" label="9:16"></v-radio>
+                  <v-radio color="primary" :value="3 / 4" label="3:4"></v-radio>
                 </v-radio-group>
               </div>
             </v-col>
@@ -34,7 +34,8 @@
                   dark
                   @click="toggleDarkMode"
                   class="text-none my-3"
-                >{{ this.$vuetify.theme.dark ? "Light mode" : "Dark mode" }}</v-btn>
+                  >{{ this.$vuetify.theme.dark ? "Light mode" : "Dark mode" }}</v-btn
+                >
               </div>
               <div>
                 <v-checkbox
@@ -122,8 +123,8 @@ import { contextModule } from "@/store/context";
 
 @Component({
   components: {
-    CustomFieldCreator
-  }
+    CustomFieldCreator,
+  },
 })
 export default class About extends Vue {
   version = "0.23";
