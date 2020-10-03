@@ -7,14 +7,14 @@ import {
   markerCollection,
 } from "../database";
 import { singleScreenshot } from "../ffmpeg/screenshot";
-import { generateHash } from "../hash";
-import * as logger from "../logger";
+import { generateHash } from "../utils/hash";
+import * as logger from "../utils/logger";
+import { libraryPath } from "../utils/misc";
 // import Actor from "./actor";
 // import ActorReference from "./actor_reference";
 import Image from "./image";
 import Label from "./label";
 import Scene from "./scene";
-import { libraryPath } from "./utility";
 
 export default class Marker {
   _id: string;
@@ -30,16 +30,6 @@ export default class Marker {
 
   static async getAll(): Promise<Marker[]> {
     return markerCollection.getAll();
-  }
-
-  static async checkIntegrity(): Promise<void> {
-    const allMarkers = await Marker.getAll();
-
-    for (const marker of allMarkers) {
-      if (!marker.thumbnail) {
-        await this.createMarkerThumbnail(marker);
-      }
-    }
   }
 
   static async createMarkerThumbnail(marker: Marker): Promise<void> {
@@ -106,6 +96,10 @@ export default class Marker {
 
   static async getById(_id: string): Promise<Marker | null> {
     return markerCollection.get(_id);
+  }
+
+  static async getBulk(_ids: string[]): Promise<Marker[]> {
+    return markerCollection.getBulk(_ids);
   }
 
   static async remove(_id: string): Promise<void> {

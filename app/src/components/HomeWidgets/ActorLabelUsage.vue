@@ -1,35 +1,52 @@
 <template>
-  <WidgetCard title="Actor label usage" icon="mdi-label">
-    <canvas id="actor-labels"></canvas>
+  <WidgetCard v-if="show" title="Actor label usage" icon="mdi-label">
+    <canvas ref="canvas"></canvas>
   </WidgetCard>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import gql from "graphql-tag";
+import { Component, Vue, Watch } from "vue-property-decorator";
 import Chart from "chart.js";
 import Axios from "axios";
 import { serverBase } from "@/apollo";
 
 @Component
 export default class ActorLabelUsage extends Vue {
-  created() {
-    this.getStats();
+  stats: {
+    label: { _id: string; name: string };
+    score: number;
+  }[] = [];
+  chart: Chart | null = null;
+
+  get show() {
+    return !!this.stats.length;
   }
 
-  async getStats() {
-    const res = await Axios.get(serverBase + "/label-usage/actors");
-    const stats = res.data.slice(0, 10) as {
-      label: { _id: string; name: string };
-      score: number;
-    }[];
+  @Watch("show")
+  async onShowChange(show: boolean) {
+    // Always destroy: we don't need to show, or recreating the chart
+    this.destroyChart();
 
-    var myPieChart = new Chart("actor-labels", {
+    if (show) {
+      // Wait for canvas to render since 'show' just changed value
+      await this.$nextTick();
+      this.initChart();
+    }
+  }
+
+  initChart() {
+    const canvas = this.$refs.canvas as HTMLCanvasElement | null;
+    if (!canvas) {
+      console.error("Could not initialize actor label usage chart: canvas not found");
+      return;
+    }
+
+    this.chart = new Chart(canvas, {
       type: "pie",
       data: {
         datasets: [
           {
-            data: stats.map(s => s.score),
+            data: this.stats.map((s) => s.score),
             backgroundColor: [
               "#1b6ca8",
               "#0a97b0",
@@ -39,18 +56,42 @@ export default class ActorLabelUsage extends Vue {
               "#e71414",
               "#12947f",
               "#562349",
-              "#b5076b"
-            ]
-          }
+              "#b5076b",
+            ],
+          },
         ],
-        labels: stats.map(s => s.label.name)
+        labels: this.stats.map((s) => s.label.name),
       },
       options: {
         legend: {
-          display: false
-        }
-      }
+          display: false,
+        },
+      },
     });
+  }
+
+  destroyChart() {
+    this.chart?.destroy();
+  }
+
+  async getStats() {
+    try {
+      const res = await Axios.get(serverBase + "/label-usage/actors");
+      this.stats = res.data.slice(0, 10) as {
+        label: { _id: string; name: string };
+        score: number;
+      }[];
+    } catch (err) {
+      console.error("Could not retrieve actor label usage: ", err.message);
+    }
+  }
+
+  created() {
+    this.getStats();
+  }
+
+  beforeDestroy() {
+    this.destroyChart();
   }
 }
 </script>

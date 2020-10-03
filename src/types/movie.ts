@@ -4,13 +4,13 @@ import {
   movieSceneCollection,
   sceneCollection,
 } from "../database";
-import { generateHash } from "../hash";
-import * as logger from "../logger";
+import { mapAsync } from "../utils/async";
+import { generateHash } from "../utils/hash";
+import * as logger from "../utils/logger";
 import Actor from "./actor";
 import Label from "./label";
 import MovieScene from "./movie_scene";
 import Scene from "./scene";
-import { mapAsync } from "./utility";
 
 export default class Movie {
   _id: string;
@@ -27,9 +27,6 @@ export default class Movie {
   scenes?: string[]; // backwards compatibility
   customFields: Record<string, boolean | string | number | string[] | null> = {};
   studio: string | null = null;
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  static async checkIntegrity(): Promise<void> {}
 
   static async calculateDuration(movie: Movie): Promise<number | null> {
     const scenesWithSource = (await Movie.getScenes(movie)).filter(
@@ -58,14 +55,17 @@ export default class Movie {
     return movieCollection.get(_id);
   }
 
+  static getBulk(_ids: string[]): Promise<Movie[]> {
+    return movieCollection.getBulk(_ids);
+  }
+
   static getAll(): Promise<Movie[]> {
     return movieCollection.getAll();
   }
 
   static async getByScene(id: string): Promise<Movie[]> {
-    return (
-      await mapAsync(await MovieScene.getByScene(id), (ms) => Movie.getById(ms.movie))
-    ).filter(Boolean) as Movie[];
+    const movieScenes = await MovieScene.getByScene(id);
+    return await Movie.getBulk(movieScenes.map((ms) => ms.movie));
   }
 
   static getByStudio(studioId: string): Promise<Movie[]> {
@@ -77,7 +77,7 @@ export default class Movie {
     const labelIds = [
       ...new Set((await mapAsync(scenes, Scene.getLabels)).flat().map((a) => a._id)),
     ];
-    return (await mapAsync(labelIds, Label.getById)).filter(Boolean) as Label[];
+    return await Label.getBulk(labelIds);
   }
 
   static async getActors(movie: Movie): Promise<Actor[]> {

@@ -1,7 +1,6 @@
 import * as database from "../../database";
 import { studioCollection } from "../../database";
 import { stripStr } from "../../extractor";
-import * as logger from "../../logger";
 import { updateScenes } from "../../search/scene";
 import { index as studioIndex, indexStudios } from "../../search/studio";
 import Image from "../../types/image";
@@ -9,6 +8,7 @@ import LabelledItem from "../../types/labelled_item";
 import Movie from "../../types/movie";
 import Scene from "../../types/scene";
 import Studio from "../../types/studio";
+import * as logger from "../../utils/logger";
 
 type IStudioUpdateOpts = Partial<{
   name: string;
@@ -51,22 +51,37 @@ export default {
       const studio = await Studio.getById(id);
 
       if (studio) {
-        if (Array.isArray(opts.aliases)) studio.aliases = [...new Set(opts.aliases)];
+        if (Array.isArray(opts.aliases)) {
+          studio.aliases = [...new Set(opts.aliases)];
+        }
 
-        if (typeof opts.name === "string") studio.name = opts.name.trim();
+        if (typeof opts.name === "string") {
+          studio.name = opts.name.trim();
+        }
 
-        if (typeof opts.description === "string") studio.description = opts.description.trim();
+        if (typeof opts.description === "string") {
+          studio.description = opts.description.trim();
+        }
 
-        if (typeof opts.thumbnail === "string") studio.thumbnail = opts.thumbnail;
+        if (typeof opts.thumbnail === "string") {
+          studio.thumbnail = opts.thumbnail;
+        }
 
-        if (opts.parent !== undefined) studio.parent = opts.parent;
+        if (opts.parent !== undefined) {
+          studio.parent = opts.parent;
+        }
 
-        if (typeof opts.bookmark === "number" || opts.bookmark === null)
+        if (typeof opts.bookmark === "number" || opts.bookmark === null) {
           studio.bookmark = opts.bookmark;
+        }
 
-        if (typeof opts.favorite === "boolean") studio.favorite = opts.favorite;
+        if (typeof opts.favorite === "boolean") {
+          studio.favorite = opts.favorite;
+        }
 
-        if (Array.isArray(opts.labels)) await Studio.setLabels(studio, opts.labels);
+        if (Array.isArray(opts.labels)) {
+          await Studio.setLabels(studio, opts.labels);
+        }
 
         await studioCollection.upsert(studio._id, studio);
         updatedStudios.push(studio);

@@ -1,5 +1,5 @@
 import { customFieldCollection } from "../database";
-import { generateHash } from "../hash";
+import { generateHash } from "../utils/hash";
 
 export enum CustomFieldType {
   NUMBER = "NUMBER",
@@ -45,6 +45,10 @@ export default class CustomField {
 
   static async getById(_id: string): Promise<CustomField | null> {
     return customFieldCollection.get(_id);
+  }
+
+  static async getBulk(_ids: string[]): Promise<CustomField[]> {
+    return customFieldCollection.getBulk(_ids);
   }
 
   static async getAll(): Promise<CustomField[]> {

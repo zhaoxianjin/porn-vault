@@ -1,9 +1,9 @@
 import Vibrant from "node-vibrant";
 
 import { actorCollection, actorReferenceCollection, imageCollection } from "../database";
-import { unlinkAsync } from "../fs/async";
-import { generateHash } from "../hash";
-import * as logger from "../logger";
+import { unlinkAsync } from "../utils/fs/async";
+import { generateHash } from "../utils/hash";
+import * as logger from "../utils/logger";
 import Actor from "./actor";
 import ActorReference from "./actor_reference";
 import Label from "./label";
@@ -67,9 +67,6 @@ export default class Image {
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  static async checkIntegrity(): Promise<void> {}
-
   static async remove(image: Image): Promise<void> {
     await imageCollection.remove(image._id);
     try {
@@ -103,6 +100,10 @@ export default class Image {
 
   static async getById(_id: string): Promise<Image | null> {
     return imageCollection.get(_id);
+  }
+
+  static async getBulk(_ids: string[]): Promise<Image[]> {
+    return imageCollection.getBulk(_ids);
   }
 
   static async getAll(): Promise<Image[]> {

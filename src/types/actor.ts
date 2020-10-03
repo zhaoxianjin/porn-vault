@@ -1,12 +1,13 @@
 import moment from "moment";
 
 import { actorCollection } from "../database";
-import { generateHash } from "../hash";
 import { searchActors } from "../search/actor";
+import { mapAsync } from "../utils/async";
+import { generateHash } from "../utils/hash";
+import { createObjectSet } from "../utils/misc";
 import Label from "./label";
 import Movie from "./movie";
 import Scene from "./scene";
-import { createObjectSet, mapAsync } from "./utility";
 import SceneView from "./watch";
 
 export default class Actor {
@@ -32,9 +33,6 @@ export default class Actor {
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  static async checkIntegrity(): Promise<void> {}
-
   static async remove(actor: Actor): Promise<Actor> {
     return actorCollection.remove(actor._id);
   }
@@ -49,6 +47,10 @@ export default class Actor {
 
   static async getById(_id: string): Promise<Actor | null> {
     return actorCollection.get(_id);
+  }
+
+  static async getBulk(_ids: string[]): Promise<Actor[]> {
+    return actorCollection.getBulk(_ids);
   }
 
   static async getAll(): Promise<Actor[]> {
@@ -101,7 +103,7 @@ export default class Actor {
     const result = await searchActors(
       `query:'' sortBy:score sortDir:desc skip:${skip} take:${take}`
     );
-    return mapAsync(result.items, Actor.getById);
+    return await Actor.getBulk(result.items);
   }
 
   constructor(name: string, aliases: string[] = []) {

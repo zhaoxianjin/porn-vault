@@ -5,8 +5,6 @@ import { extname } from "path";
 import { getConfig } from "../../config";
 import { imageCollection } from "../../database";
 import { extractActors, extractLabels } from "../../extractor";
-import { copyFileAsync, statAsync, unlinkAsync } from "../../fs/async";
-import * as logger from "../../logger";
 import { index as imageIndex, indexImages, updateImages } from "../../search/image";
 import Actor from "../../types/actor";
 import ActorReference from "../../types/actor_reference";
@@ -15,7 +13,11 @@ import Label from "../../types/label";
 import LabelledItem from "../../types/labelled_item";
 import Scene from "../../types/scene";
 import Studio from "../../types/studio";
-import { Dictionary, libraryPath, mapAsync } from "../../types/utility";
+import { mapAsync } from "../../utils/async";
+import { copyFileAsync, statAsync, unlinkAsync } from "../../utils/fs/async";
+import * as logger from "../../utils/logger";
+import { libraryPath } from "../../utils/misc";
+import { Dictionary } from "../../utils/types";
 
 type IImageUpdateOpts = Partial<{
   name: string;
@@ -86,9 +88,13 @@ export default {
 
     let imageName = fileNameWithoutExtension;
 
-    if (args.name) imageName = args.name;
+    if (args.name) {
+      imageName = args.name;
+    }
 
-    if (!mimetype.includes("image/")) throw new Error("Invalid file");
+    if (!mimetype.includes("image/")) {
+      throw new Error("Invalid file");
+    }
 
     const image = new Image(imageName);
 
@@ -145,7 +151,7 @@ export default {
 
       if (args.compress === true) {
         logger.log("Resizing image to thumbnail size");
-        const MAX_SIZE = config.COMPRESS_IMAGE_SIZE;
+        const MAX_SIZE = config.processing.imageCompressionSize;
 
         if (_image.bitmap.width > _image.bitmap.height && _image.bitmap.width > MAX_SIZE) {
           _image.resize(MAX_SIZE, Jimp.AUTO);
@@ -202,7 +208,7 @@ export default {
     logger.log(`Found ${extractedLabels.length} labels in image path.`);
     labels.push(...extractedLabels);
 
-    if (config.APPLY_ACTOR_LABELS === true) {
+    if (config.matching.applyActorLabels === true) {
       logger.log("Applying actor labels to image");
       labels.push(
         ...(
@@ -246,8 +252,8 @@ export default {
 
           const existingLabels = (await Image.getLabels(image)).map((l) => l._id);
 
-          if (config.APPLY_ACTOR_LABELS === true) {
-            const actors = (await mapAsync(actorIds, Actor.getById)).filter(Boolean) as Actor[];
+          if (config.matching.applyActorLabels === true) {
+            const actors = await Actor.getBulk(actorIds);
             const labelIds = (await mapAsync(actors, Actor.getLabels))
               .flat()
               .map((label) => label._id);
@@ -256,23 +262,38 @@ export default {
             await Image.setLabels(image, existingLabels.concat(labelIds));
           }
         } else {
-          if (Array.isArray(opts.labels)) await Image.setLabels(image, opts.labels);
+          if (Array.isArray(opts.labels)) {
+            await Image.setLabels(image, opts.labels);
+          }
         }
 
-        if (typeof opts.bookmark === "number" || opts.bookmark === null)
+        if (typeof opts.bookmark === "number" || opts.bookmark === null) {
           image.bookmark = opts.bookmark;
+        }
 
-        if (typeof opts.favorite === "boolean") image.favorite = opts.favorite;
+        if (typeof opts.favorite === "boolean") {
+          image.favorite = opts.favorite;
+        }
 
-        if (typeof opts.name === "string") image.name = opts.name.trim();
+        if (typeof opts.name === "string") {
+          image.name = opts.name.trim();
+        }
 
-        if (typeof opts.rating === "number") image.rating = opts.rating;
+        if (typeof opts.rating === "number") {
+          image.rating = opts.rating;
+        }
 
-        if (opts.studio !== undefined) image.studio = opts.studio;
+        if (opts.studio !== undefined) {
+          image.studio = opts.studio;
+        }
 
-        if (opts.scene !== undefined) image.scene = opts.scene;
+        if (opts.scene !== undefined) {
+          image.scene = opts.scene;
+        }
 
-        if (opts.color && isHexColorString(opts.color)) image.color = opts.color;
+        if (opts.color && isHexColorString(opts.color)) {
+          image.color = opts.color;
+        }
 
         if (opts.customFields) {
           for (const key in opts.customFields) {

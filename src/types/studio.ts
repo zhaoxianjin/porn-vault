@@ -1,10 +1,11 @@
 import { studioCollection } from "../database";
-import { generateHash } from "../hash";
+import { mapAsync } from "../utils/async";
+import { generateHash } from "../utils/hash";
+import { createObjectSet } from "../utils/misc";
 import Actor from "./actor";
 import Label from "./label";
 import Movie from "./movie";
 import Scene from "./scene";
-import { createObjectSet, mapAsync } from "./utility";
 
 export default class Studio {
   _id: string;
@@ -16,9 +17,6 @@ export default class Studio {
   bookmark: number | null = null;
   parent: string | null = null;
   aliases?: string[];
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  static async checkIntegrity(): Promise<void> {}
 
   constructor(name: string) {
     this._id = "st_" + generateHash();
@@ -40,6 +38,10 @@ export default class Studio {
 
   static async getById(_id: string): Promise<Studio | null> {
     return studioCollection.get(_id);
+  }
+
+  static async getBulk(_ids: string[]): Promise<Studio[]> {
+    return studioCollection.getBulk(_ids);
   }
 
   static async getAll(): Promise<Studio[]> {
@@ -78,7 +80,7 @@ export default class Studio {
     const actorIds = [
       ...new Set((await mapAsync(scenes, Scene.getActors)).flat().map((a) => a._id)),
     ];
-    return (await mapAsync(actorIds, Actor.getById)).filter(Boolean) as Actor[];
+    return await Actor.getBulk(actorIds);
   }
 
   static async setLabels(studio: Studio, labelIds: string[]): Promise<void> {
