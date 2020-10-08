@@ -9,6 +9,12 @@ import Label from "./label";
 import Movie from "./movie";
 import Scene from "./scene";
 import SceneView from "./watch";
+import LRU from "lru-cache";
+
+export const actorCache = new LRU({
+  max: 2500,
+  maxAge: 3600 * 1000,
+});
 
 export default class Actor {
   _id: string;
@@ -45,12 +51,32 @@ export default class Actor {
     return Label.getForItem(actor._id);
   }
 
-  static async getById(_id: string): Promise<Actor | null> {
-    return actorCollection.get(_id);
+  static async getById(_id: string, useCache = false): Promise<Actor | null> {
+    if (useCache) {
+      const item = actorCache.get(_id);
+      if (item) {
+        return item as Actor;
+      }
+    }
+    const actor = await actorCollection.get(_id);
+    if (useCache) {
+      actorCache.set(_id, actor);
+    }
+    return actor;
   }
 
-  static async getBulk(_ids: string[]): Promise<Actor[]> {
-    return actorCollection.getBulk(_ids);
+  static async getBulk(_ids: string[], useCache = false): Promise<Actor[]> {
+    if (useCache) {
+      const actors = actorCache.get(_ids.slice().sort().join());
+      if (actors) {
+        return actors as Actor[];
+      }
+    }
+    const actors = await actorCollection.getBulk(_ids);
+    if (useCache) {
+      actorCache.set(_ids.slice().sort().join(), actors);
+    }
+    return actors;
   }
 
   static async getAll(): Promise<Actor[]> {

@@ -2,6 +2,12 @@ import { labelCollection, labelledItemCollection } from "../database";
 import { generateHash } from "../utils/hash";
 import * as logger from "../utils/logger";
 import LabelledItem from "./labelled_item";
+import LRU from "lru-cache";
+
+export const labelCache = new LRU({
+  max: 2500,
+  maxAge: 3600 * 1000,
+});
 
 export default class Label {
   _id: string;
@@ -30,17 +36,27 @@ export default class Label {
     }
   }
 
-  static async getForItem(id: string): Promise<Label[]> {
+  static async getForItem(id: string, useCache=false): Promise<Label[]> {
     const references = await LabelledItem.getByItem(id);
-    return await Label.getBulk(references.map((r) => r.label));
+    return (await Label.getBulk(references.map((r) => r.label), useCache)).filter(Boolean);
   }
 
   static async getById(_id: string): Promise<Label | null> {
     return await labelCollection.get(_id);
   }
 
-  static async getBulk(_ids: string[]): Promise<Label[]> {
-    return (await labelCollection.getBulk(_ids)).filter(Boolean);
+  static async getBulk(_ids: string[], useCache = false): Promise<Label[]> {
+    if (useCache) {
+      const labels = labelCache.get(_ids.slice().sort().join());
+      if (labels) {
+        return labels as Label[];
+      }
+    }
+    const labels = await labelCollection.getBulk(_ids);
+    if (useCache) {
+      labelCache.set(_ids.slice().sort().join(), labels);
+    }
+    return labels;
   }
 
   static async getAll(): Promise<Label[]> {

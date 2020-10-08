@@ -45,7 +45,7 @@ export interface IMovieSearchDoc {
 export async function createMovieSearchDoc(movie: Movie): Promise<IMovieSearchDoc> {
   const labels = await Movie.getLabels(movie);
   const actors = await Movie.getActors(movie);
-  const studio = movie.studio ? await Studio.getById(movie.studio) : null;
+  const studio = movie.studio ? await Studio.getById(movie.studio, true) : null;
   const scenes = await Movie.getScenes(movie);
 
   return {

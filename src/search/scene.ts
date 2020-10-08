@@ -66,7 +66,7 @@ async function createSceneSearchDoc(scene: Scene): Promise<ISceneSearchDoc> {
     studio: scene.studio,
     resolution: scene.meta.dimensions ? scene.meta.dimensions.height : 0,
     size: scene.meta.size,
-    studioName: scene.studio ? ((await Studio.getById(scene.studio)) || { name: null }).name : null,
+    studioName: scene.studio ? ((await Studio.getById(scene.studio, true)) || { name: null }).name : null,
     score: Scene.calculateScore(scene, numViews),
   };
 }

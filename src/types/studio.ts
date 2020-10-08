@@ -6,6 +6,12 @@ import Actor from "./actor";
 import Label from "./label";
 import Movie from "./movie";
 import Scene from "./scene";
+import LRU from "lru-cache";
+
+export const studioCache = new LRU({
+  max: 500,
+  maxAge: 3600 * 1000,
+});
 
 export default class Studio {
   _id: string;
@@ -36,8 +42,18 @@ export default class Studio {
     }
   }
 
-  static async getById(_id: string): Promise<Studio | null> {
-    return studioCollection.get(_id);
+  static async getById(_id: string, useCache = false): Promise<Studio | null> {
+    if (useCache) {
+      const item = studioCache.get(_id);
+      if (item) {
+        return item as Studio;
+      }
+    }
+    const studio = await studioCollection.get(_id);
+    if (useCache) {
+      studioCache.set(_id, studio);
+    }
+    return studio;
   }
 
   static async getBulk(_ids: string[]): Promise<Studio[]> {

@@ -1,6 +1,7 @@
 import ora from "ora";
 import asyncPool from "tiny-async-pool";
 
+import argv from "../args";
 import extractQueryOptions from "../query_extractor";
 import Image from "../types/image";
 import { mapAsync } from "../utils/async";
@@ -81,12 +82,14 @@ export const getSlices = (size: number) => <T>(arr: T[]): T[][] => {
 
 export async function indexImages(images: Image[]): Promise<number> {
   if (!images.length) return 0;
-  const slices = getSlices(2500)(images);
+  const slices = getSlices(argv["index-slice-size"] || 1000)(images);
 
   await asyncPool(4, slices, async (slice) => {
     const docs = [] as IImageSearchDoc[];
     await asyncPool(16, slice, async (image) => {
-      if (!isBlacklisted(image.name)) docs.push(await createImageSearchDoc(image));
+      if (!isBlacklisted(image.name)) {
+        docs.push(await createImageSearchDoc(image));
+      }
     });
     await addImageSearchDocs(docs);
   });
@@ -117,8 +120,8 @@ export async function buildImageIndex(): Promise<Gianna.Index<IImageSearchDoc>> 
 }
 
 export async function createImageSearchDoc(image: Image): Promise<IImageSearchDoc> {
-  const labels = await Image.getLabels(image);
-  const actors = await Image.getActors(image);
+  const labels = await Image.getLabels(image, true);
+  const actors = await Image.getActors(image, true);
 
   return {
     _id: image._id,

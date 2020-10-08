@@ -1,6 +1,6 @@
 import Vibrant from "node-vibrant";
 
-import { actorCollection, actorReferenceCollection, imageCollection } from "../database";
+import {  actorReferenceCollection, imageCollection } from "../database";
 import { unlinkAsync } from "../utils/fs/async";
 import { generateHash } from "../utils/hash";
 import * as logger from "../utils/logger";
@@ -110,9 +110,9 @@ export default class Image {
     return imageCollection.getAll();
   }
 
-  static async getActors(image: Image): Promise<Actor[]> {
+  static async getActors(image: Image, useCache = false): Promise<Actor[]> {
     const references = await ActorReference.getByItem(image._id);
-    return (await actorCollection.getBulk(references.map((r) => r.actor))).filter(Boolean);
+    return  (await Actor.getBulk(references.map(r => r.actor), true)).filter(Boolean)
   }
 
   static async setActors(image: Image, actorIds: string[]): Promise<void> {
@@ -135,8 +135,8 @@ export default class Image {
     return Label.setForItem(image._id, labelIds, "image");
   }
 
-  static async getLabels(image: Image): Promise<Label[]> {
-    return Label.getForItem(image._id);
+  static async getLabels(image: Image, useCache=false): Promise<Label[]> {
+    return Label.getForItem(image._id, useCache);
   }
 
   static async getImageByPath(path: string): Promise<Image | undefined> {
